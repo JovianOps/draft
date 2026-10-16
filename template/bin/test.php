@@ -38,6 +38,17 @@ if ($suites === []) {
   exit(1);
 }
 
+$server = NULL;
+
+if (in_array('functional', $suites, TRUE)) {
+  // Functional tests drive a real web server and install a testing profile
+  // per test on SQLite. The server serves the assembled build; each test
+  // owns its tables inside the given database file.
+  $server = startTestServer($build . DIRECTORY_SEPARATOR . 'web');
+  putenv('SIMPLETEST_BASE_URL=http://127.0.0.1:8080');
+  putenv('SIMPLETEST_DB=sqlite://localhost/' . $build . '/sites/default/files/.ht-test.sqlite');
+}
+
 passthru(sprintf(
   '%s %s -c %s --testsuite=%s',
   PHP_BINARY,
@@ -46,4 +57,41 @@ passthru(sprintf(
   escapeshellarg(implode(',', $suites))
 ), $code);
 
+if ($server !== NULL) {
+  proc_terminate($server);
+  proc_close($server);
+}
+
 exit($code);
+
+/**
+ * Start the PHP built-in server over the build. Returns the process.
+ *
+ * @return resource
+ */
+function startTestServer(string $docroot) {
+  $null = PHP_OS_FAMILY === 'Windows' ? 'NUL' : '/dev/null';
+  $process = proc_open(
+    [PHP_BINARY, '-S', '127.0.0.1:8080', '-t', $docroot],
+    [0 => ['file', $null, 'r'], 1 => ['file', $null, 'w'], 2 => ['file', $null, 'w']],
+    $pipes
+  );
+
+  if (!is_resource($process)) {
+    fwrite(STDERR, "Could not start the test web server.\n");
+    exit(1);
+  }
+
+  for ($i = 0; $i < 50; $i++) {
+    $context = stream_context_create(['http' => ['timeout' => 1]]);
+
+    if (@file_get_contents('http://127.0.0.1:8080/', FALSE, $context) !== FALSE) {
+      return $process;
+    }
+
+    usleep(100000);
+  }
+
+  fwrite(STDERR, "The test web server never answered.\n");
+  exit(1);
+}
