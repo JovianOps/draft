@@ -90,10 +90,20 @@ function main(array $argv): void {
   // The extension itself is symlinked (live source, no copy drift), but tool
   // configs must always be copied: several tools cannot resolve symlinked
   // configs. There are none yet; keep the rule when adding any.
+  // Link item by item, never the build directory itself: linking the whole
+  // root would nest build/ inside build/ forever, and Drupal's extension
+  // discovery follows the loop until it chokes.
   $kind = is_dir($root . DIRECTORY_SEPARATOR . 'src') ? 'modules' : 'themes';
   $link = $build . DIRECTORY_SEPARATOR . 'web' . DIRECTORY_SEPARATOR . $kind . DIRECTORY_SEPARATOR . 'custom' . DIRECTORY_SEPARATOR . $machine;
-  @mkdir(dirname($link), 0777, TRUE);
-  symlink($root, $link);
+  @mkdir($link, 0777, TRUE);
+
+  foreach (glob($root . DIRECTORY_SEPARATOR . '*') ?: [] as $item) {
+    if (in_array(basename($item), ['build', 'vendor', '.git'], TRUE)) {
+      continue;
+    }
+
+    symlink($item, $link . DIRECTORY_SEPARATOR . basename($item));
+  }
 
   step('Installing the site');
   run(sprintf('php %s install -y --db-url=sqlite://localhost/sites/default/files/.ht.sqlite --account-pass=admin %s %s', escapeshellarg($build . '/vendor/bin/drush'), escapeshellarg($profile), '>&2'));
