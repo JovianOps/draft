@@ -1,0 +1,25 @@
+{
+    "name": "drupal/{{MACHINE}}",
+    "description": "{{NAME}}: a contributed Drupal {{TYPE}}.",
+    "type": "drupal-{{TYPE}}",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.3",
+        "drupal/core": "^{{DRUPAL}}"
+    },
+    "require-dev": {
+        "drupal/core-dev": "^{{DRUPAL}}"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://packages.drupal.org/8"
+        }
+    ],
+    "support": {
+        "issues": "https://www.drupal.org/project/issues/{{MACHINE}}",
+        "source": "https://git.drupalcode.org/project/{{MACHINE}}.git"
+    }
+}

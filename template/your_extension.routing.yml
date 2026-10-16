@@ -1,0 +1,8 @@
+{{MACHINE}}.hello:
+  path: '/{{MACHINE}}/hello/{name}'
+  defaults:
+    _controller: '\Drupal\{{MACHINE}}\Controller\{{CLASS}}Controller::hello'
+    name: 'world'
+    _title: 'Hello'
+  requirements:
+    _permission: 'access content'

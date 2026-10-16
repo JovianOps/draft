@@ -1,0 +1,3 @@
+services:
+  {{MACHINE}}.greeter:
+    class: Drupal\{{MACHINE}}\{{CLASS}}Service

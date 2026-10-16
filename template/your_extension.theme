@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * @file
+ * {{NAME}} theme hooks. Delete what you do not use.
+ */
+
+declare(strict_types=1);
+
+/**
+ * Implements hook_preprocess_page().
+ */
+function {{MACHINE}}_preprocess_page(array &$variables): void {
+  $variables['#attached']['library'][] = '{{MACHINE}}/global-styling';
+}

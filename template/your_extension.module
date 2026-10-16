@@ -1,0 +1,18 @@
+<?php
+
+/**
+ * @file
+ * {{NAME}} hooks. Delete what you do not use.
+ */
+
+declare(strict_types=1);
+
+/**
+ * Implements hook_help().
+ */
+function {{MACHINE}}_help(string $route_name): string {
+  return match ($route_name) {
+    '{{MACHINE}}.hello' => t('A greeting page.'),
+    default => '',
+  };
+}

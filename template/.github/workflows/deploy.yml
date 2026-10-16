@@ -1,0 +1,22 @@
+name: Deploy
+on:
+  workflow_run:
+    workflows: [Test]
+    types: [completed]
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event != 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+      - uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          known-hosts: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+      - run: git config user.name "${{ vars.DEPLOY_USER_NAME }}"
+      - run: git config user.email "${{ vars.DEPLOY_USER_EMAIL }}"
+      - run: DEPLOY_REMOTE="${{ secrets.DEPLOY_REMOTE }}" DEPLOY_BRANCH="${{ vars.DEPLOY_BRANCH }}" php bin/deploy.php --proceed

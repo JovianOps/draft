@@ -1,0 +1,37 @@
+name: Draft CI
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  php:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+      - run: php -l scaffold.php
+      - run: php tests/scaffold_test.php
+
+  assemble:
+    runs-on: ubuntu-latest
+    needs: php
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, curl, zip, gd, pdo_sqlite, sqlite3
+          tools: composer:v2
+      - run: php scaffold.php --dest=demo_module --no-interaction --name="Demo" --machine=demo --type=module --drupal=11
+      - run: php bin/assemble.php
+        working-directory: demo_module
+      - run: php bin/test.php
+        working-directory: demo_module
+      - run: php scaffold.php --dest=demo_theme --no-interaction --name="Demo Theme" --machine=demo_theme --type=theme --drupal=11
+      - run: php bin/assemble.php
+        working-directory: demo_theme
+      - run: php bin/test.php
+        working-directory: demo_theme
