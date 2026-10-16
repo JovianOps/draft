@@ -2,4 +2,5 @@ name: '{{NAME}}'
 type: {{TYPE}}
 description: 'A contributed Drupal {{TYPE}}.'
 core_version_requirement: ^{{DRUPAL}}
+base theme: olivero
 package: Custom

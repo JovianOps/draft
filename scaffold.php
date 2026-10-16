@@ -203,6 +203,11 @@ function renderDraft(string $template, string $dest, array $answers): int {
 
     $content = strtr((string) file_get_contents($file->getPathname()), $tokens);
 
+    if ($answers['type'] === 'module' && str_ends_with($target_relative, '.info.yml')) {
+      // Themes require a base theme; modules must not declare one.
+      $content = (string) preg_replace('/^base theme:.*(\r?\n)?/m', '', $content);
+    }
+
     if (preg_match('/\{\{[A-Z]+\}\}/', $content) === 1 || preg_match('/\{\{[A-Z]+\}\}/', $target_relative) === 1) {
       fwrite(STDERR, sprintf("Unreplaced token in %s.\n", $target_relative));
       exit(1);

@@ -48,6 +48,7 @@ foreach (['greet.theme', 'greet.libraries.yml', 'css/style.css', 'js/script.js',
 
 $info = (string) @file_get_contents($module . '/greet.info.yml');
 $check('Module info declares module type.', str_contains($info, 'type: module'));
+$check('Module info has no base theme.', !str_contains($info, 'base theme'));
 $service = (string) @file_get_contents($module . '/src/GreetService.php');
 $check('Service uses the machine namespace.', str_contains($service, 'namespace Drupal\greet;'));
 $check('Service class derives from the machine name.', str_contains($service, 'class GreetService'));
@@ -68,6 +69,7 @@ foreach (['breeze.module', 'src/', 'config/', 'tests/src/Unit/'] as $file) {
 
 $theme_info = (string) @file_get_contents($theme . '/breeze.info.yml');
 $check('Theme info declares theme type and Drupal 10.', str_contains($theme_info, 'type: theme') && str_contains($theme_info, '^10'));
+$check('Theme info keeps its base theme.', str_contains($theme_info, 'base theme: olivero'));
 
 // No placeholders survive anywhere.
 foreach (['module' => $module, 'theme' => $theme] as $label => $dest) {
