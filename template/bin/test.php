@@ -71,9 +71,10 @@ exit($code);
  */
 function startTestServer(string $docroot) {
   $null = PHP_OS_FAMILY === 'Windows' ? 'NUL' : '/dev/null';
+  $log = $docroot . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'test-server.log';
   $process = proc_open(
     [PHP_BINARY, '-S', '127.0.0.1:8080', '-t', $docroot],
-    [0 => ['file', $null, 'r'], 1 => ['file', $null, 'w'], 2 => ['file', $null, 'w']],
+    [0 => ['file', $null, 'r'], 1 => ['file', $log, 'w'], 2 => ['file', $log, 'w']],
     $pipes
   );
 
@@ -82,16 +83,21 @@ function startTestServer(string $docroot) {
     exit(1);
   }
 
-  for ($i = 0; $i < 50; $i++) {
-    $context = stream_context_create(['http' => ['timeout' => 1]]);
+  $context = stream_context_create(['http' => ['timeout' => 2, 'ignore_errors' => TRUE]]);
 
-    if (@file_get_contents('http://127.0.0.1:8080/', FALSE, $context) !== FALSE) {
+  for ($i = 0; $i < 100; $i++) {
+    $probe = @file_get_contents('http://127.0.0.1:8080/', FALSE, $context);
+
+    if ($probe !== FALSE) {
       return $process;
     }
 
     usleep(100000);
   }
 
-  fwrite(STDERR, "The test web server never answered.\n");
+  fwrite(STDERR, "The test web server never answered. Server log:\n");
+  fwrite(STDERR, (string) @file_get_contents($log));
+  proc_terminate($process);
+  proc_close($process);
   exit(1);
 }
