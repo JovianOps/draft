@@ -40,7 +40,7 @@ function main(array $argv): void {
   run(sprintf('composer create-project --no-interaction --no-progress drupal/recommended-project:^%s %s', escapeshellarg($drupal), escapeshellarg($build)));
 
   step('Requiring dev tooling');
-  run(sprintf('composer --working-dir=%s require --dev --no-progress drupal/core-dev:^%s drush/drush', escapeshellarg($build), escapeshellarg($drupal)));
+  run(sprintf('composer --working-dir=%s require --dev --no-progress --with-all-dependencies drupal/core-dev:^%s drush/drush', escapeshellarg($build), escapeshellarg($drupal)));
 
   step('Linking the extension');
   $kind = is_dir($root . DIRECTORY_SEPARATOR . 'src') ? 'modules' : 'themes';
