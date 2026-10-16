@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit bootstrap="build/core/tests/bootstrap.php" colors="true" stopOnFailure="true">
+<phpunit bootstrap="build/web/core/tests/bootstrap.php" colors="true" stopOnFailure="true">
   <testsuites>
     <testsuite name="unit">
       <directory>tests/src/Unit</directory>
