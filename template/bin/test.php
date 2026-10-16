@@ -19,7 +19,15 @@ if (!is_file($build . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'bi
 
 $suites = [];
 
+// A .skip_functional sentinel drops the slow suite even when it exists.
+$skip_functional = is_file($root . DIRECTORY_SEPARATOR . '.skip_functional');
+
 foreach (['unit', 'functional'] as $suite) {
+  if ($suite === 'functional' && $skip_functional) {
+    echo "Skipping functional suite (.skip_functional present).\n";
+    continue;
+  }
+
   if (is_dir($root . DIRECTORY_SEPARATOR . 'tests' . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . ucfirst($suite))) {
     $suites[] = $suite;
   }

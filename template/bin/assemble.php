@@ -36,13 +36,50 @@ function main(array $argv): void {
   $build = $root . DIRECTORY_SEPARATOR . 'build';
   $machine = machineName($root);
 
+  // Fail fast: Drupal 11 needs PHP 8.3+, Drupal 10 needs PHP 8.1+. Checking
+  // before the download beats failing five minutes into composer install.
+  step('Checking PHP against Drupal requirements');
+  $minimum_php = ['10' => '8.1', '11' => '8.3'];
+
+  if (!isset($minimum_php[$drupal])) {
+    fwrite(STDERR, sprintf("Unsupported Drupal major: %s (want 10|11).\n", $drupal));
+    exit(1);
+  }
+
+  $running = sprintf('%d.%d', PHP_MAJOR_VERSION, PHP_MINOR_VERSION);
+
+  if (version_compare($running, $minimum_php[$drupal], '<')) {
+    fwrite(STDERR, sprintf("Drupal %s needs PHP %s+, running on PHP %s.\n", $drupal, $minimum_php[$drupal], $running));
+    exit(1);
+  }
+
+  echo "  PHP {$running} meets Drupal {$drupal} (>= {$minimum_php[$drupal]}).\n";
+
   step(sprintf('Creating Drupal %s site in build/', $drupal));
   run(sprintf('composer create-project --no-interaction --no-progress drupal/recommended-project:^%s %s', escapeshellarg($drupal), escapeshellarg($build)));
 
   step('Requiring dev tooling');
   run(sprintf('composer --working-dir=%s require --dev --no-progress --with-all-dependencies drupal/core-dev:^%s drush/drush', escapeshellarg($build), escapeshellarg($drupal)));
 
+  // Suggested dependencies are the extension's optionals: install them so
+  // the build tests what authors offer, without forcing them on consumers.
+  step('Installing suggested dependencies');
+  $extension_json = readJsonFile($root . DIRECTORY_SEPARATOR . 'composer.json');
+  $build_json = readJsonFile($build . DIRECTORY_SEPARATOR . 'composer.json');
+
+  foreach (array_keys($extension_json['suggest'] ?? []) as $suggest) {
+    if (isset($build_json['require'][$suggest]) || isset($build_json['require-dev'][$suggest])) {
+      echo "  Skipping {$suggest} (already required).\n";
+      continue;
+    }
+
+    run(sprintf('composer --working-dir=%s require --no-progress %s', escapeshellarg($build), escapeshellarg((string) $suggest)));
+  }
+
   step('Linking the extension');
+  // The extension itself is symlinked (live source, no copy drift), but tool
+  // configs must always be copied: several tools cannot resolve symlinked
+  // configs. There are none yet; keep the rule when adding any.
   $kind = is_dir($root . DIRECTORY_SEPARATOR . 'src') ? 'modules' : 'themes';
   $link = $build . DIRECTORY_SEPARATOR . 'web' . DIRECTORY_SEPARATOR . $kind . DIRECTORY_SEPARATOR . 'custom' . DIRECTORY_SEPARATOR . $machine;
   @mkdir(dirname($link), 0777, TRUE);
@@ -67,6 +104,20 @@ function machineName(string $root): string {
 
   fwrite(STDERR, "No *.info.yml found; is this an extension root?\n");
   exit(1);
+}
+
+/**
+ * Read a JSON file or exit loudly.
+ */
+function readJsonFile(string $path): array {
+  $data = json_decode((string) @file_get_contents($path), TRUE);
+
+  if (!is_array($data)) {
+    fwrite(STDERR, sprintf("Cannot read %s.\n", $path));
+    exit(1);
+  }
+
+  return $data;
 }
 
 /**

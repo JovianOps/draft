@@ -17,4 +17,5 @@ php -l scaffold.php           # every PHP file, every time
 2. **Original work only.** Never copy code, text, or fixtures from other projects. Their licenses do not belong here.
 3. No marker blocks, no fences, no commented-out variants. Type differences = drop-lists in `scaffold.php` (`themeOnlyPaths` / `moduleOnlyPaths`). Max 5 tokens (`NAME/MACHINE/CLASS/TYPE/DRUPAL`).
 4. Every template addition lands in `tests/scaffold_test.php` golden assertions (kept + dropped + no placeholders).
-5. Keep it lean: no new binary, suite, doc, or dependency without a stated reason.
+5. Symlink live source, copy tool configs (tools break on symlinked configs). Sentinel files (`.skip_*`) beat flags for skipping slow steps.
+6. Keep it lean: no new binary, suite, doc, or dependency without a stated reason.
