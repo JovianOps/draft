@@ -53,6 +53,7 @@ $check('Service uses the machine namespace.', str_contains($service, 'namespace 
 $check('Service class derives from the machine name.', str_contains($service, 'class GreetService'));
 $composer = json_decode((string) @file_get_contents($module . '/composer.json'), TRUE);
 $check('Rendered composer.json is valid with drupal-module type.', ($composer['type'] ?? '') === 'drupal-module');
+$check('PHPUnit config ships.', $has($module, 'phpunit.xml'));
 
 // Theme dataset.
 $theme = $scaffold('theme', '--name="Breeze" --machine=breeze --type=theme --drupal=10');
