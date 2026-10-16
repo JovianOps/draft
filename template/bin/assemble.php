@@ -56,10 +56,20 @@ function main(array $argv): void {
   echo "  PHP {$running} meets Drupal {$drupal} (>= {$minimum_php[$drupal]}).\n";
 
   step(sprintf('Creating Drupal %s site in build/', $drupal));
-  run(sprintf('composer create-project --no-interaction --no-progress drupal/recommended-project:^%s %s', escapeshellarg($drupal), escapeshellarg($build)));
+  run(sprintf('composer create-project --no-install --no-interaction --no-progress drupal/recommended-project:^%s %s', escapeshellarg($drupal), escapeshellarg($build)));
+
+  // Distribution zips of drupal/core leave out core/tests, which holds the
+  // test base classes and the PHPUnit bootstrap. Install core from source.
+  step('Keeping core tests available');
+  $created_json = readJsonFile($build . DIRECTORY_SEPARATOR . 'composer.json');
+  $created_json['config']['preferred-install']['drupal/core'] = 'source';
+  file_put_contents($build . DIRECTORY_SEPARATOR . 'composer.json', json_encode($created_json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
 
   step('Requiring dev tooling');
   run(sprintf('composer --working-dir=%s require --dev --no-progress --with-all-dependencies drupal/core-dev:^%s drush/drush', escapeshellarg($build), escapeshellarg($drupal)));
+
+  step('Installing dependencies');
+  run(sprintf('composer --working-dir=%s install --no-progress --no-interaction', escapeshellarg($build)));
 
   // Suggested dependencies are the extension's optionals: install them so
   // the build tests what authors offer, without forcing them on consumers.

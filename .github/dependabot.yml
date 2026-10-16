@@ -1,5 +1,7 @@
 # Dependabot: weekly minor/patch groups, majors solo, Jakarta mornings.
-# The template/ block keeps scaffolded extensions fresh at the source.
+# NOTE: no composer block for template/ — its composer.json holds {{TOKENS}}
+# until scaffolded, which the updater cannot parse. Template deps update
+# when a maintainer scaffolds and runs composer update there.
 version: 2
 updates:
   - package-ecosystem: github-actions
