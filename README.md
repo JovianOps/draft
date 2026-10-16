@@ -31,5 +31,5 @@ Deliberately absent until needed: kernel/functional suites beyond the smoke test
 ## Verification status (honest)
 
 - ✅ Scaffolding: proven here — `php tests/scaffold_test.php` prints `OK: module and theme scaffolds match the golden layout.` Zero leftover placeholders under both datasets.
+- ✅ Assemble + tests: proven in CI — the `assemble` job scaffolds a module AND a theme, downloads real Drupal, installs both, and runs green (`Tests: 2, Assertions: 2` unit; `Tests: 1, Assertions: 1` functional smoke).
 - ✅ All PHP lint-clean (`php -l`).
-- ⏳ `bin/assemble.php` (real Drupal download + SQLite install) and the template CI run in CI on every push; treat them as beta until green there.
